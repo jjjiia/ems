@@ -1,3 +1,4 @@
+//test
 Promise.all([d3.csv("drug_reduced.csv"),d3.json("zipcode.geojson")])
     .then(function(data){ 
       ready(data[0],data[1])
