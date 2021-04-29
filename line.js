@@ -5,14 +5,28 @@ Promise.all([d3.csv("drug_reduced.csv"),d3.json("zipcode.geojson")])
       ready(data[0],data[1])
     })
 
-
-function ready(ems,geo) {
-    
+    var width = 800
+    var height = 200
+    var margin = 50
     var startYear = 2016
     var startMonth = 1
     var startDay = 1
    var startDate = new Date(startYear,startMonth,startDay)
-   var endDate = new Date(2020, 12, 31)
+	var endYear = 2020
+   var endDate = new Date(endYear, 12, 31)
+var x = d3.scaleTime()
+      .domain([startDate, endDate])
+      .rangeRound([0, width]);
+       var max = 600
+	  
+var y = d3.scaleLinear()
+      .domain([0,max])
+      .range([height, 0]);
+    //var weeks = (endDate-startDate)/ (7 * 24 * 60 * 60 * 1000)
+    var weeks = 5*12	  
+	  
+function ready(ems,geo) {
+    
    var byB = filterByZip(ems,startDate)
  //
  //   for(var b in byB){
@@ -25,20 +39,26 @@ function ready(ems,geo) {
         var byB = filterByZip(ems,startDate)
         //console.log(byB)
         drawOutline(geo,byB,startDate,endDate) //call the draw outline function from below 
-    var weeks = 15*12
-    var width = weeks*6
-    var height = 300
-    var margin = 50
+    var weeks = endYear-startYear*12
+    
   var svg = d3.select("#line").append("svg")  .attr("id","chart")
       .attr("width", width+margin*2)
       .attr("height", height+margin*2)
       .append("g")
-    svg.append("text").text("ALL").attr("x",10).attr("y",margin-2)  
+    svg.append("text").text("By Zipcode").attr("x",10).attr("y",margin-5)  
  
  for(var b in byB){
     // console.log(b)
      drawLine(b,byB[b],startDate,endDate,svg)
  }
+
+svg.append("g")
+      .attr("transform", "translate("+margin+"," + (height+margin) + ")")
+      .call(d3.axisBottom(x).ticks(10));    
+	  
+svg.append("g")
+      .attr("transform", "translate("+margin+","+margin+")")
+      .call(d3.axisLeft(y).ticks(4));
           
 
  // drawChart("ALL BOROUGHS",ems,startDate,endDate)
@@ -47,16 +67,14 @@ function ready(ems,geo) {
 
 function drawOutline(geo,ems,startDate,endDate){
     //console.log(geo)
-    var width = 900
-    var height = 900
-    var padding = 20
-    
+    var width = 500
+    var height = 500    
     var svg = d3.select("#map")
         .append("svg")
         .attr("width",width)
         .attr("height", height);  
     
-    var padding = 50
+    var padding = 10
 
     var projection = d3.geoAlbers()
             .fitExtent([[padding,padding],[width-padding,height-padding]],geo)
@@ -76,6 +94,7 @@ svg.append("g")
       .attr("d", d3.geoPath()
         .projection(projection)
       )
+	  .attr("class","map")
       // set the color of each country
       .attr("fill", function (d) {
           var population = d.properties.POPULATION
@@ -99,11 +118,11 @@ svg.append("g")
 //         d.total = data.get(d.id) || 0;
 //         return colorScale(d.total);
       })
-      .attr("stroke","#fff")
       .on("mouseover",function(event, d){
           console.log(d.properties.ZIPCODE)
          // drawLine(label, data, startDate,endDate)
-          d3.select(this).attr("stroke","#000")
+		  d3.selectAll(".map").attr("stroke-opacity",0)
+          d3.select(this).attr("stroke","#000").attr("stroke-opacity",1)
           
           d3.selectAll(".line").attr("opacity",.01)
           d3.selectAll("#_"+d.properties.ZIPCODE).attr("stroke","red").attr("opacity",1)
@@ -114,9 +133,11 @@ svg.append("g")
           )
       })
       .on("mouseout",function(event, d){
-          console.log(d.properties)
-          d3.select(this).attr("stroke","#fff")
+         // console.log(d.properties)
+          d3.select(this).attr("stroke-opacity",0)
          d3.select("#rollover").html("")
+          d3.selectAll(".line").attr("opacity",.1).attr("stroke","black")
+		  
       })
     
     
@@ -156,19 +177,16 @@ function filterByZip(data,startDate){
 
 function drawLine(label, data, startDate,endDate,svg){
  // d3.select("#chart").remove()
-    console.log(data)
-    var weeks = (endDate-startDate)/ (7 * 24 * 60 * 60 * 1000)
-    var weeks = 15*12
+    //console.log(data)
+    
     var parseDate = d3.timeParse("%m/%d/%Y");
-    var width = weeks*6
-    var height = 300
-    var margin = 50
-    var x = d3.scaleTime()
-          .domain([startDate, endDate])
-          .rangeRound([0, width]);
-    var y = d3.scaleLinear()
-          .range([height, 0]);
-         // console.log(max)
+  
+    // var x = d3.scaleTime()
+   //        .domain([startDate, endDate])
+   //        .rangeRound([0, width]);
+   //  var y = d3.scaleLinear()
+   //        .range([height, 0]);
+   //       // console.log(max)
           
       var valueline = d3.line()
           .curve(d3.curveBasis)
@@ -185,16 +203,10 @@ function drawLine(label, data, startDate,endDate,svg){
                 //.thresholds(x.ticks(d3.timeMonth));
 
         var bins = histogram(data);
-      var max = d3.max(bins, function(d) { return d.length; })
-        var max = 300
+     // var max = d3.max(bins, function(d) { return d.length; })
+//      var min = d3.min(bins, function(d) { return d.length; })        
         
-      var min = d3.min(bins, function(d) { return d.length; })
-        var min = 0
-      var c = d3.scaleLinear().domain([0,(min+max)/2,max]).range(["#aaa","#aaa","red"])
-        y.domain([0, max]);
-        
-        
- 
+
   
    svg.append("path")
         .data([bins])
@@ -204,6 +216,8 @@ function drawLine(label, data, startDate,endDate,svg){
         .attr("fill","none")
         .attr("stroke","#000000")
         .attr("opacity",.1)
+        .attr("transform", "translate("+margin+"," + margin + ")")
+		
 }
 
 

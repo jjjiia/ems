@@ -6,20 +6,28 @@
     font-size:16px;
   }
   #map{
-    width:600px;
-    height:600px;
+    width:500px;
+    height:500px;
+  }
+  #rollover{
+	  border:1px solid black;
+	  width:100px;
+	  height:100px;
+	  position:absolute;
+	  top:50px;
+	  left:10px;
+	  padding:10px;
   }
 
 </style>
 <script src="https://d3js.org/d3.v6.min.js"></script>
 
 <body>
-  Weekly "DRUG" "FINAL_CALL_TYPE" calls
+  "DRUG" "FINAL_CALL_TYPE" calls
   <br>
   <div id="dateRange">date</div>
-  <div id="line"></div>
-  
   <div id="map"></div>
+  <div id="line"></div>  
   <div id="rollover">rollover</div>
 </body>
 
